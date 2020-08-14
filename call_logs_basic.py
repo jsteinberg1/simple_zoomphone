@@ -18,13 +18,9 @@ def get_call_logs(
     """
     Script to access Zoom Phone Call Log via marketplace.zoom.us API
 
-    --call_direction can be used to limit results to 'outbound' or 'inbound' calls.
     """
 
     client = ZoomClient(API_KEY, API_SECRET)
-
-    # Get all Zoom Users
-    user_list = zoomus_pagination.all_zoom_users(client=client)
 
     # Get all ZP Users
     phone_user_list = zoomus_pagination.all_zp_users(client=client)
@@ -38,8 +34,6 @@ def get_call_logs(
     # Set headers for CSV file
     headers = [
         "email",
-        "dept",
-        "job_title",
         "caller_number",
         "caller_number_type",
         "caller_name",
@@ -79,26 +73,6 @@ def get_call_logs(
                     end_date=end_date,
                 )
 
-                # find the ZP users ZM user profile - this is used to merge data from overall ZM users into ZP call log
-                this_user_zm_info = ""
-                this_user_zm_info = next(
-                    item
-                    for item in user_list
-                    if item["email"].lower() == this_user["email"].lower()
-                )
-
-                # Handle users that don't have a department specified. ( Set 'dept' to '' to prevent future error)
-                if "dept" not in this_user_zm_info:
-                    this_user_zm_info["dept"] = ""
-
-                # Get Title from user profile ( title is not provided in the list ZM users API call, so need to query each ZM user to get this. )
-                this_user_get_response = client.user.get(id=this_user["email"])
-                this_user_get = json.loads(this_user_get_response.content)
-                if "job_title" in this_user_get:
-                    this_user_title_temp = this_user_get["job_title"]
-                else:
-                    this_user_title_temp = ""
-
                 # filter call logs as needed
                 if len(this_user_call_logs) > 0:
                     if call_direction == "inbound":
@@ -118,19 +92,12 @@ def get_call_logs(
 
                     # loop through all returned call logs & add data for additional columns as required
                     for user_call_log in this_user_call_logs:
-                        user_call_log.update(
-                            {
-                                "email": this_user_zm_info["email"],
-                                "dept": this_user_zm_info["dept"],
-                                "job_title": this_user_title_temp,
-                            }
-                        )
+                        user_call_log.update({"email": this_user_zm_info["email"]})
 
                     dict_writer.writerows(this_user_call_logs)
 
             except Exception as e:
                 print(f" FAILED retrieving call Logs for user {this_user['email']}")
-                print(e)
                 error_count += 1
 
     # Print error count

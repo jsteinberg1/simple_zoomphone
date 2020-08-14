@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from zoomus import ZoomClient
 
@@ -52,3 +53,35 @@ def all_zp_users(client: ZoomClient):
         first_run = False
 
     return all_user_list
+
+
+def all_zp_user_call_logs(
+    client: ZoomClient, email: str, start_date: datetime, end_date: datetime
+):
+    # Get Call Logs for this user
+
+    next_page_token = ""
+    page_size = 300
+    first_run = True
+
+    all_user_call_logs = []
+
+    while next_page_token != "" or first_run:
+
+        phone_user_call_logs_response = client.phone.user_call_logs(
+            page_size=page_size,
+            email=email,
+            start_date=start_date,
+            end_date=end_date,
+            next_page_token=next_page_token,
+        )
+
+        phone_user_call_logs = json.loads(phone_user_call_logs_response.content)
+
+        if "call_logs" in phone_user_call_logs:
+            all_user_call_logs = all_user_call_logs + phone_user_call_logs["call_logs"]
+
+        next_page_token = phone_user_call_logs["next_page_token"]
+        first_run = False
+
+    return all_user_call_logs
