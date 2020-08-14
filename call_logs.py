@@ -5,6 +5,7 @@ import datetime
 import json
 
 from zoomus import ZoomClient
+import zoomus_pagination
 
 
 def get_call_logs(
@@ -22,13 +23,11 @@ def get_call_logs(
 
     client = ZoomClient(API_KEY, API_SECRET)
 
-    # Create ZM User object
-    user_list_response = client.user.list()
-    user_list = json.loads(user_list_response.content)
+    # Get all Zoom Users
+    user_list = zoomus_pagination.all_zoom_users(client=client)
 
-    # Create ZP User object
-    phone_user_list_response = client.phone.users()
-    phone_user_list = json.loads(phone_user_list_response.content)
+    # Get all ZP Users
+    phone_user_list = zoomus_pagination.all_zp_users(client=client)
 
     # Set Call Log Query Parameters
     page_size = 300
@@ -64,7 +63,7 @@ def get_call_logs(
         dict_writer.writeheader()
 
         # iterate phone users
-        for user in phone_user_list["users"]:
+        for user in phone_user_list:
             time.sleep(
                 1.25
             )  # delay due to Zoom Phone Call Log API rate limit ( 1 request per second )
@@ -74,7 +73,7 @@ def get_call_logs(
                 zm_user_info_temp = ""
                 zm_user_info_temp = next(
                     item
-                    for item in user_list["users"]
+                    for item in user_list
                     if item["email"].lower() == user["email"].lower()
                 )
 
@@ -85,7 +84,11 @@ def get_call_logs(
                 # Get Title from user profile ( title is not provided in the list ZM users API call, so need to query each ZM user to get this. )
                 user_get_response = client.user.get(id=user["email"])
                 user_get = json.loads(user_get_response.content)
-                user_title_temp = user_get["job_title"]
+
+                if "job_title" in user_get:
+                    user_title_temp = user_get["job_title"]
+                else:
+                    user_title_temp = ""
 
                 # Get Call Logs for this user
                 next_page_token = ""
@@ -136,9 +139,11 @@ def get_call_logs(
 
                     next_page_token = phone_user_call_logs["next_page_token"]
                     first_run = False
-            except:
+            except Exception as e:
                 print(f" FAILED retrieving call Logs for user {user['email']}")
                 error_count += 1
+                print("Error at %s", "division", exc_info=e)
+                exit()
 
     # Print error count
     print(f"Errors encountered: {error_count}")

@@ -1,3 +1,7 @@
 /.venv/*
 /.vscode/*
+/__pycache__/*
 .DS_Store
+/test_scripts/*
+test.py
+/*.csv
