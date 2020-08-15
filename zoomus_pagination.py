@@ -82,6 +82,46 @@ def all_zp_user_call_logs(
             all_user_call_logs = all_user_call_logs + phone_user_call_logs["call_logs"]
 
         next_page_token = phone_user_call_logs["next_page_token"]
+
+        if next_page_token != "":
+            time.sleep(
+                1.25
+            )  # delay due to Zoom Phone Call Log API rate limit ( 1 request per second )
+
         first_run = False
 
     return all_user_call_logs
+
+
+def all_zp_user_recordings(client: ZoomClient, email: str):
+    # Get Call Recordings for this user
+
+    next_page_token = ""
+    page_size = 300
+    first_run = True
+
+    all_zp_user_recordings = []
+
+    while next_page_token != "" or first_run:
+
+        zp_user_recordings_response = client.phone.user_recordings(
+            page_size=page_size, email=email, next_page_token=next_page_token,
+        )
+
+        zp_user_recordings = json.loads(zp_user_recordings_response.content)
+
+        if "recordings" in zp_user_recordings:
+            all_zp_user_recordings = (
+                all_zp_user_recordings + zp_user_recordings["recordings"]
+            )
+
+        next_page_token = zp_user_recordings["next_page_token"]
+
+        if next_page_token != "":
+            time.sleep(
+                1.25
+            )  # delay due to Zoom Phone Call Log API rate limit ( 1 request per second )
+
+        first_run = False
+
+    return all_zp_user_recordings

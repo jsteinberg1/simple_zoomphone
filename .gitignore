@@ -5,3 +5,5 @@
 /test_scripts/*
 test.py
 /*.csv
+/recordings/*
+*.mp3
