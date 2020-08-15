@@ -26,4 +26,4 @@ Download call recordings MP3 files. Specify email address for a single user or o
 
 python call_recordings.py -h
 
-python call_logs.py <API_KEY> <API_SECRET> --email=bill.smith@email.com
+python call_recordings.py <API_KEY> <API_SECRET> --email=bill.smith@email.com
