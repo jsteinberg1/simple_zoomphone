@@ -19,3 +19,11 @@ pip install requirements.txt
 python call_logs.py -h
 
 python call_logs.py <API_KEY> <API_SECRET> --from_date=2019-12-31 --number_of_days=30 --call_direction=all
+
+### Call Recording Exporter
+
+Download call recordings MP3 files. Specify email address for a single user or omit for all users
+
+python call_recordings.py -h
+
+python call_recordings.py <API_KEY> <API_SECRET> --email=bill.smith@email.com
