@@ -59,7 +59,7 @@ def get_call_logs(
         # iterate phone users
         for this_user in phone_user_list:
             time.sleep(
-                1.25
+                0.25
             )  # delay due to Zoom Phone Call Log API rate limit ( 1 request per second )
             print(f" Getting Call Logs for user {this_user['email']}")
             try:

@@ -41,7 +41,11 @@ def download_call_recordings(user_2_recording: list, token: str):
             # Get Filename based on hour minute and caller ID numbers
 
             this_filename_is = (
-                str(this_recording_date.hour).zfill(2)
+                str(this_recording_date.year)
+                + str(this_recording_date.month).zfill(2)
+                + str(this_recording_date.day).zfill(2)
+                + "-"
+                + str(this_recording_date.hour).zfill(2)
                 + str(this_recording_date.minute).zfill(2)
                 + "-"
                 + this_recording["caller_number"]
@@ -82,7 +86,7 @@ def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
     user_2_recording = {}
     for this_user in phone_user_list:
         time.sleep(
-            1.25
+            0.25
         )  # delay due to Zoom Phone Call Log API rate limit ( 1 request per second )
 
         print(f" Getting list of call recordings for user {this_user['email']}")

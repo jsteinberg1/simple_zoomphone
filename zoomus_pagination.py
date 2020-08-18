@@ -85,7 +85,7 @@ def all_zp_user_call_logs(
 
         if next_page_token != "":
             time.sleep(
-                1.25
+                0.25
             )  # delay due to Zoom Phone Call Log API rate limit ( 1 request per second )
 
         first_run = False
@@ -119,7 +119,7 @@ def all_zp_user_recordings(client: ZoomClient, email: str):
 
         if next_page_token != "":
             time.sleep(
-                1.25
+                0.25
             )  # delay due to Zoom Phone Call Log API rate limit ( 1 request per second )
 
         first_run = False
