@@ -13,6 +13,8 @@ def get_call_logs(
     API_SECRET: str,
     from_date: datetime.datetime,
     number_of_days: int = 1,
+    department: str = "",
+    job_title: str = "",
     call_direction: str = "all",
 ):
     """
@@ -52,6 +54,7 @@ def get_call_logs(
         "date_time",
     ]
 
+    download_count = 0
     error_count = 0
 
     # Create CSV file, query Call Log API, and write data
@@ -64,13 +67,52 @@ def get_call_logs(
 
         # iterate phone users
         for this_user in phone_user_list:
-            time.sleep(
-                0.25
-            )  # delay due to Zoom Phone Call Log API rate limit ( 1 request per second )
+
+            # find the ZP users ZM user profile - this is used to merge data from overall ZM users into ZP call log
+            this_user_zm_info = ""
+            this_user_zm_info = next(
+                item
+                for item in user_list
+                if item["email"].lower() == this_user["email"].lower()
+            )
+
+            # Handle users that don't have a department specified. ( Set 'dept' to '' to prevent future error)
+            if "dept" not in this_user_zm_info:
+                this_user_zm_info["dept"] = ""
+
+            # check whether optional department parameter was included in filter
+            if department != "":
+                # we only want users from a specific department in CSV output
+                if department.lower() != this_user_zm_info["dept"].lower():
+                    # this user is not in the correct department, so skip to next users
+                    continue
+
+            # Get Title from user profile ( title is not provided in the list ZM users API call, so need to query each ZM user to get this. )
+            time.sleep(0.02)  # delay due to Zoom light API rate limit
+            this_user_get_response = client.user.get(id=this_user["email"])
+            this_user_get = json.loads(this_user_get_response.content)
+
+            if "job_title" in this_user_get:
+
+                this_user_title_temp = this_user_get["job_title"]
+            else:
+                this_user_title_temp = ""
+
+            # check whether optional job_title parameter was included in filter
+            if job_title != "":
+                # we only want users with a specific job_title in CSV output
+                if job_title.lower() != this_user_title_temp.lower():
+                    # this user does not have the correct job title, so skip to next users
+                    continue
+
             print(f" Getting Call Logs for user {this_user['email']}")
             try:
                 # get this user's call logs
                 this_user_call_logs = []
+
+                time.sleep(
+                    0.12
+                )  # delay due to Zoom Phone Call Log API rate limit ( 10 requests/second )
 
                 this_user_call_logs = zoomus_pagination.all_zp_user_call_logs(
                     client=client,
@@ -78,26 +120,6 @@ def get_call_logs(
                     start_date=from_date,
                     end_date=end_date,
                 )
-
-                # find the ZP users ZM user profile - this is used to merge data from overall ZM users into ZP call log
-                this_user_zm_info = ""
-                this_user_zm_info = next(
-                    item
-                    for item in user_list
-                    if item["email"].lower() == this_user["email"].lower()
-                )
-
-                # Handle users that don't have a department specified. ( Set 'dept' to '' to prevent future error)
-                if "dept" not in this_user_zm_info:
-                    this_user_zm_info["dept"] = ""
-
-                # Get Title from user profile ( title is not provided in the list ZM users API call, so need to query each ZM user to get this. )
-                this_user_get_response = client.user.get(id=this_user["email"])
-                this_user_get = json.loads(this_user_get_response.content)
-                if "job_title" in this_user_get:
-                    this_user_title_temp = this_user_get["job_title"]
-                else:
-                    this_user_title_temp = ""
 
                 # filter call logs as needed
                 if len(this_user_call_logs) > 0:
@@ -128,12 +150,15 @@ def get_call_logs(
 
                     dict_writer.writerows(this_user_call_logs)
 
+                download_count += 1
+
             except Exception as e:
                 print(f" FAILED retrieving call Logs for user {this_user['email']}")
                 print(e)
                 error_count += 1
 
     # Print error count
+    print(f"Users downloaded: {download_count}")
     print(f"Errors encountered: {error_count}")
 
 
@@ -162,6 +187,18 @@ if __name__ == "__main__":
         help="Number of days to pull call logs. Max 30 days.",
     )
     parser.add_argument(
+        "--department",
+        type=str,
+        default="",
+        help="Specify Department to only export Call Logs for users with this department",
+    )
+    parser.add_argument(
+        "--job_title",
+        type=str,
+        default="",
+        help="Specify Job Title to only export Call Logs for users with this title.",
+    )
+    parser.add_argument(
         "--call_direction",
         type=str,
         default="all",
@@ -171,11 +208,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     get_call_logs(
-        args.API_KEY,
-        args.API_SECRET,
-        args.from_date,
-        args.number_of_days,
-        args.call_direction,
+        API_KEY=args.API_KEY,
+        API_SECRET=args.API_SECRET,
+        from_date=args.from_date,
+        number_of_days=args.number_of_days,
+        department=args.department,
+        job_title=args.job_title,
+        call_direction=args.call_direction,
     )
 
     # This script can run using the below configuration and removing the above argparse
@@ -186,6 +225,8 @@ if __name__ == "__main__":
     API_SECRET = input("Enter API_SECRET: ")
     from_date = datetime.datetime(2020, 5, 1)
     number_of_days = 30  # API will not return more than 30 days, do not use a value > 30
+    job_title = ''
+    department = ''
     call_direction = 'outbound' # 'outbound', 'inbound', 'all'
     get_call_logs(API_KEY, API_SECRET, from_date, number_of_days, call_direction)
     """

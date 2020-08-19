@@ -18,7 +18,7 @@ pip install requirements.txt
 
 python call_logs.py -h
 
-python call_logs.py <API_KEY> <API_SECRET> --from_date=2019-12-31 --number_of_days=30 --call_direction=all
+python call_logs.py <API_KEY> <API_SECRET> --from_date=2019-12-31 --number_of_days=30 --department="Sales" --job_title="Inside Sales Representative" --call_direction=all
 
 ### Call Recording Exporter
 
