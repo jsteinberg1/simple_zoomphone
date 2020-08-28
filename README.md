@@ -4,9 +4,8 @@ These scripts are sample scripts for Zoom Phone. See Zoom API documentation on m
 
 ## Installation
 
-1. Install Python
-2. Install required Libraries from requirements.txt
-3. Download zoomus library from https://github.com/jsteinberg1/zoomus
+1. Install Python 3.8+
+2. Install required Libraries
 
 ```bash
 pip install requirements.txt
