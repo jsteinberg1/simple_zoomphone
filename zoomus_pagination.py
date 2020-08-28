@@ -56,7 +56,7 @@ def all_zp_users(client: ZoomClient):
 
 
 def all_zp_user_call_logs(
-    client: ZoomClient, email: str, start_date: datetime, end_date: datetime
+    client: ZoomClient, email: str, from_date: datetime, to_date: datetime
 ):
     # Get Call Logs for this user
 
@@ -71,8 +71,8 @@ def all_zp_user_call_logs(
         phone_user_call_logs_response = client.phone.user_call_logs(
             page_size=page_size,
             email=email,
-            start_date=start_date,
-            end_date=end_date,
+            from_date=from_date,
+            to_date=to_date,
             next_page_token=next_page_token,
         )
 

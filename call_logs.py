@@ -35,7 +35,7 @@ def get_call_logs(
     page_size = 300
 
     # Set end date based on from_date + number of days ( zoom Call log API is limited to max 30 days in a single query)
-    end_date = from_date + datetime.timedelta(days=number_of_days)
+    to_date = from_date + datetime.timedelta(days=number_of_days)
 
     # Set headers for CSV file
     headers = [
@@ -117,8 +117,8 @@ def get_call_logs(
                 this_user_call_logs = zoomus_pagination.all_zp_user_call_logs(
                     client=client,
                     email=this_user["email"],
-                    start_date=from_date,
-                    end_date=end_date,
+                    from_date=from_date,
+                    to_date=to_date,
                 )
 
                 # filter call logs as needed
