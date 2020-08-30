@@ -8,7 +8,7 @@ These scripts are sample scripts for Zoom Phone. See Zoom API documentation on m
 2. Install required Libraries
 
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Usage
