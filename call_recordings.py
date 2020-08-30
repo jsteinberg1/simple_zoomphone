@@ -7,6 +7,23 @@ from zoomphone import ZoomAPIClient
 
 
 def download_call_recordings(user_2_recording: list, token: str):
+    """Download MP3 files from Zoom API and store files to disk.
+
+    Files are stored in the 'recordings' top-level directory.  A subdirectory is created for each year, month, and user.
+    Filenames include timestamp and phone numbers of involved parties and are written in format: yyyymmdd-hhmm-ani-dnis.mp3
+
+    Example directory structure and filenaming:
+
+        recordings/
+            2020/
+                8/
+                    john.doe@domain.com/
+                        20200821-2217-16505551212-104.mp3
+
+    Args:
+        user_2_recording (list): List of Call Recording Metadata dicts, including download URL
+        token (str): JWT token to use to authenticate to Zoom API for downloading MP3 files
+    """
 
     # top level directory to save recordings
     dirName = "recordings"
@@ -74,6 +91,13 @@ def download_call_recordings(user_2_recording: list, token: str):
 
 
 def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
+    """Access call recordings metadata from Zoom API
+
+    Args:
+        API_KEY (str): API key from marketplace.zoom.us
+        API_SECRET (str): API secret from marketplace.zoom.us
+        USER_ID (str, optional): userid or email address to download call recordings for a single user.  Omit this parameter to access recordings from all users. Defaults to "".
+    """
 
     zoom_api_client = ZoomAPIClient(API_KEY, API_SECRET)
 

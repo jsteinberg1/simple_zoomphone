@@ -14,10 +14,18 @@ def get_call_logs(
     job_title: str = "",
     call_direction: str = "all",
 ):
-    """
-    Script to access Zoom Phone Call Log via marketplace.zoom.us API
+    """Script to access Zoom Phone Call Log via marketplace.zoom.us API
 
-    --call_direction can be used to limit results to 'outbound' or 'inbound' calls.
+    A new CSV file is written each time this script is run, timestamp is included in filename.
+
+    Args:
+        API_KEY (str): API key from marketplace.zoom.us
+        API_SECRET (str): API secret from marketplace.zoom.us
+        from_date (datetime.datetime): Start date for Call Log Export (e.g. yyyy-mm-dd )
+        number_of_days (int, optional): Number of days to export.  Max 30. Defaults to 1.
+        department (str, optional): Name of department to use to filter exported records.  Only users in this dept will be included in export. Defaults to "".
+        job_title (str, optional): Name of job title to use to filter exported records.  Only users with this job title will be included in export. Defaults to "".
+        call_direction (str, optional): Call direction, can be 'all', 'inbound', or 'outbound'. Defaults to "all".
     """
 
     zoom_api_client = ZoomAPIClient(API_KEY, API_SECRET)
