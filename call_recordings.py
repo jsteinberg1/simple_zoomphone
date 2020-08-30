@@ -1,27 +1,23 @@
 import argparse
 import os
-import csv
-import time
 import datetime
-import json
+import requests
 
 from zoomphone import ZoomAPIClient
-
-import requests
 
 
 def download_call_recordings(user_2_recording: list, token: str):
 
+    # top level directory to save recordings
+    dirName = "recordings"
+
     for this_user in user_2_recording:
         print(f"Downloading MP3 files for user {this_user}", end="")
 
-        # top level directory to save recordings
-        dirName = "recordings"
+        download_count = 0
 
         # loop through each call recording for this user
         for this_recording in user_2_recording[this_user]:
-
-            download_count = 0
 
             # Get date for this recording
             this_recording_date = datetime.datetime.strptime(
