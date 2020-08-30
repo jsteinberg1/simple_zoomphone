@@ -5,8 +5,7 @@ import time
 import datetime
 import json
 
-from zoomus import ZoomClient
-import zoomus_pagination
+from zoomphone import ZoomAPIClient
 
 import requests
 
@@ -63,7 +62,8 @@ def download_call_recordings(user_2_recording: list, token: str):
                 }
 
                 recording_request_response = requests.get(
-                    this_recording["download_url"], headers=headers,
+                    this_recording["download_url"],
+                    headers=headers,
                 )
 
                 open(os.path.join(this_directory_name, this_filename_is), "wb").write(
@@ -73,26 +73,22 @@ def download_call_recordings(user_2_recording: list, token: str):
 
 def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
 
-    client = ZoomClient(API_KEY, API_SECRET)
+    zoom_api_client = ZoomAPIClient(API_KEY, API_SECRET)
 
     # Determine whether we are getting call recordings for one user or all users
     if USER_ID == "":
         # Get all ZP Users
-        phone_user_list = zoomus_pagination.all_zp_users(client=client)
+        phone_user_list = zoom_api_client.users_list_users()
     else:
         phone_user_list = [{"email": USER_ID}]
 
     # Access User Call Recordings objects
     user_2_recording = {}
     for this_user in phone_user_list:
-        time.sleep(
-            0.25
-        )  # delay due to Zoom Phone Call Log API rate limit ( 1 request per second )
-
         print(f" Getting list of call recordings for user {this_user['email']}")
 
-        this_user_recording = zoomus_pagination.all_zp_user_recordings(
-            client=client, email=this_user["email"]
+        this_user_recording = zoom_api_client.phone_get_user_call_recordings(
+            userId=this_user["email"]
         )
 
         if len(this_user_recording) > 0:
@@ -100,7 +96,7 @@ def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
 
     # Pass to function to write to disk
     download_call_recordings(
-        user_2_recording=user_2_recording, token=client.config.get("token")
+        user_2_recording=user_2_recording, token=zoom_api_client.jwt
     )
 
 
@@ -126,5 +122,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     get_call_recordings(
-        API_KEY=args.API_KEY, API_SECRET=args.API_SECRET, USER_ID=args.email,
+        API_KEY=args.API_KEY,
+        API_SECRET=args.API_SECRET,
+        USER_ID=args.email,
     )

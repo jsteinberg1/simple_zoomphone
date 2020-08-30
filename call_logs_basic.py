@@ -4,8 +4,7 @@ import time
 import datetime
 import json
 
-from zoomus import ZoomClient
-import zoomus_pagination
+from zoomphone import ZoomAPIClient
 
 
 def get_call_logs(
@@ -20,16 +19,16 @@ def get_call_logs(
 
     """
 
-    client = ZoomClient(API_KEY, API_SECRET)
+    zoom_api_client = ZoomAPIClient(API_KEY, API_SECRET)
 
     # Get all ZP Users
-    phone_user_list = zoomus_pagination.all_zp_users(client=client)
+    phone_user_list = zoom_api_client.phone_list_users()
 
     # Set Call Log Query Parameters
     page_size = 300
 
     # Set end date based on from_date + number of days ( zoom Call log API is limited to max 30 days in a single query)
-    end_date = from_date + datetime.timedelta(days=number_of_days)
+    to_date = from_date + datetime.timedelta(days=number_of_days)
 
     # Set headers for CSV file
     headers = [
@@ -58,19 +57,13 @@ def get_call_logs(
 
         # iterate phone users
         for this_user in phone_user_list:
-            time.sleep(
-                0.25
-            )  # delay due to Zoom Phone Call Log API rate limit ( 1 request per second )
-            print(f" Getting Call Logs for user {this_user['email']}")
+            print(f"Getting Call Logs for user {this_user['email']}", end="")
             try:
                 # get this user's call logs
                 this_user_call_logs = []
 
-                this_user_call_logs = zoomus_pagination.all_zp_user_call_logs(
-                    client=client,
-                    email=this_user["email"],
-                    start_date=from_date,
-                    end_date=end_date,
+                this_user_call_logs = zoom_api_client.phone_get_user_call_logs(
+                    userId=this_user["email"], from_date=from_date, to_date=to_date
                 )
 
                 # filter call logs as needed
@@ -92,12 +85,14 @@ def get_call_logs(
 
                     # loop through all returned call logs & add data for additional columns as required
                     for user_call_log in this_user_call_logs:
-                        user_call_log.update({"email": this_user_zm_info["email"]})
+                        user_call_log.update({"email": this_user["email"]})
 
                     dict_writer.writerows(this_user_call_logs)
 
+                    print(f" - {len(this_user_call_logs)} call logs retrieved.")
+
             except Exception as e:
-                print(f" FAILED retrieving call Logs for user {this_user['email']}")
+                print(f" - Warning: {e}")
                 error_count += 1
 
     # Print error count
@@ -156,4 +151,3 @@ if __name__ == "__main__":
     call_direction = 'outbound' # 'outbound', 'inbound', 'all'
     get_call_logs(API_KEY, API_SECRET, from_date, number_of_days, call_direction)
     """
-

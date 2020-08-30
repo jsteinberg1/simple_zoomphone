@@ -1,9 +1,9 @@
 /.venv/*
 /.vscode/*
-/__pycache__/*
+__pycache__
 .DS_Store
 /test_scripts/*
-test.py
+*test.py
 /*.csv
 /recordings/*
 *.mp3

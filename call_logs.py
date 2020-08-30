@@ -4,8 +4,7 @@ import time
 import datetime
 import json
 
-from zoomus import ZoomClient
-import zoomus_pagination
+from zoomphone import ZoomAPIClient
 
 
 def get_call_logs(
@@ -23,13 +22,13 @@ def get_call_logs(
     --call_direction can be used to limit results to 'outbound' or 'inbound' calls.
     """
 
-    client = ZoomClient(API_KEY, API_SECRET)
+    zoom_api_client = ZoomAPIClient(API_KEY, API_SECRET)
 
     # Get all Zoom Users
-    user_list = zoomus_pagination.all_zoom_users(client=client)
+    user_list = zoom_api_client.users_list_users()
 
     # Get all ZP Users
-    phone_user_list = zoomus_pagination.all_zp_users(client=client)
+    phone_user_list = zoom_api_client.phone_list_users()
 
     # Set Call Log Query Parameters
     page_size = 300
@@ -88,9 +87,7 @@ def get_call_logs(
                     continue
 
             # Get Title from user profile ( title is not provided in the list ZM users API call, so need to query each ZM user to get this. )
-            time.sleep(0.02)  # delay due to Zoom light API rate limit
-            this_user_get_response = client.user.get(id=this_user["email"])
-            this_user_get = json.loads(this_user_get_response.content)
+            this_user_get = zoom_api_client.users_get_user(userId=this_user["email"])
 
             if "job_title" in this_user_get:
 
@@ -105,20 +102,13 @@ def get_call_logs(
                     # this user does not have the correct job title, so skip to next users
                     continue
 
-            print(f" Getting Call Logs for user {this_user['email']}")
+            print(f"Getting Call Logs for user {this_user['email']}", end="")
             try:
                 # get this user's call logs
                 this_user_call_logs = []
 
-                time.sleep(
-                    0.12
-                )  # delay due to Zoom Phone Call Log API rate limit ( 10 requests/second )
-
-                this_user_call_logs = zoomus_pagination.all_zp_user_call_logs(
-                    client=client,
-                    email=this_user["email"],
-                    from_date=from_date,
-                    to_date=to_date,
+                this_user_call_logs = zoom_api_client.phone_get_user_call_logs(
+                    userId=this_user["email"], from_date=from_date, to_date=to_date
                 )
 
                 # filter call logs as needed
@@ -149,12 +139,11 @@ def get_call_logs(
                         )
 
                     dict_writer.writerows(this_user_call_logs)
-
+                print(f" - {len(this_user_call_logs)} call logs retrieved.")
                 download_count += 1
 
             except Exception as e:
-                print(f" FAILED retrieving call Logs for user {this_user['email']}")
-                print(e)
+                print(f" - Warning: {e}")
                 error_count += 1
 
     # Print error count
@@ -230,4 +219,3 @@ if __name__ == "__main__":
     call_direction = 'outbound' # 'outbound', 'inbound', 'all'
     get_call_logs(API_KEY, API_SECRET, from_date, number_of_days, call_direction)
     """
-
