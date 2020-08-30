@@ -13,13 +13,15 @@ import requests
 def download_call_recordings(user_2_recording: list, token: str):
 
     for this_user in user_2_recording:
-        print(f"Downloading MP3 files for user {this_user}")
+        print(f"Downloading MP3 files for user {this_user}", end="")
 
         # top level directory to save recordings
         dirName = "recordings"
 
         # loop through each call recording for this user
         for this_recording in user_2_recording[this_user]:
+
+            download_count = 0
 
             # Get date for this recording
             this_recording_date = datetime.datetime.strptime(
@@ -70,6 +72,10 @@ def download_call_recordings(user_2_recording: list, token: str):
                     recording_request_response.content
                 )
 
+                download_count += 1
+
+        print(f" - {download_count} new mp3 file(s) downloaded.")
+
 
 def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
 
@@ -78,21 +84,28 @@ def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
     # Determine whether we are getting call recordings for one user or all users
     if USER_ID == "":
         # Get all ZP Users
-        phone_user_list = zoom_api_client.users_list_users()
+        phone_user_list = zoom_api_client.phone_list_users()
     else:
         phone_user_list = [{"email": USER_ID}]
 
     # Access User Call Recordings objects
     user_2_recording = {}
     for this_user in phone_user_list:
-        print(f" Getting list of call recordings for user {this_user['email']}")
+        try:
+            print(
+                f"Getting list of call recordings for user {this_user['email']}", end=""
+            )
 
-        this_user_recording = zoom_api_client.phone_get_user_call_recordings(
-            userId=this_user["email"]
-        )
+            this_user_recording = zoom_api_client.phone_get_user_call_recordings(
+                userId=this_user["email"]
+            )
 
-        if len(this_user_recording) > 0:
-            user_2_recording[this_user["email"]] = this_user_recording
+            if len(this_user_recording) > 0:
+                user_2_recording[this_user["email"]] = this_user_recording
+
+            print(f" - {len(this_user_recording)} recordings stored in ZP.")
+        except Exception as e:
+            print(f" - Warning: {e}")
 
     # Pass to function to write to disk
     download_call_recordings(
