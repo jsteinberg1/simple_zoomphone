@@ -1,8 +1,6 @@
 import argparse
 import csv
-import time
 import datetime
-import json
 
 from zoomphone import ZoomAPIClient
 
