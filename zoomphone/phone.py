@@ -370,9 +370,20 @@ class PhoneMixin(object):
             )
 
         if response.status_code == 204:
-            return "Request processed by API"
+            # read user's profile to verify change
+            response = self.phone_get_user_profile(userId=userId)
 
-        # TODO should we do another lookup here to see if the change was processed ?
+            if site_id and response["site_id"] != site_id:
+                raise RuntimeWarning("Error processing API request")
+
+            if extension_number and response["extension_number"] != int(
+                extension_number
+            ):
+                raise RuntimeWarning("Error processing API request")
+
+            return response
+        else:
+            raise RuntimeWarning("Error processing API request")
 
     def phone_assign_number_to_user():
         pass
