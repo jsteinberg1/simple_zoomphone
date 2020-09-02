@@ -2,6 +2,15 @@
 
 These scripts are sample scripts for Zoom Phone. See Zoom API documentation on marketplace.zoom.us
 
+This repo is a work in progress and the endoints below are still outstanding:
+* /phone/blocked_list
+* /phone/call_queues/
+* /phone/devices
+* /phone/shared_line_groups/
+* /phone/sites
+* /phone/common_area_phones
+
+
 ## Installation
 
 1. Install Python 3.8+
@@ -11,7 +20,22 @@ These scripts are sample scripts for Zoom Phone. See Zoom API documentation on m
 pip install -r requirements.txt
 ```
 
-## Usage
+## Example Library Usage
+
+from zoomphone import ZoomAPIClient
+
+zoomapi = ZoomAPIClient(
+    API_KEY=" <Zoom API KEY here> ", API_SECRET=" <Zoom API Secret here>  "
+)
+
+result = zoomapi.users().list_users()
+print(result)
+
+result = zoomapi.phone().list_users()
+print(result)
+
+
+## Sample Script Usage
 
 ### Call Log Exporter
 

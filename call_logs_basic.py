@@ -17,10 +17,10 @@ def get_call_logs(
 
     """
 
-    zoom_api_client = ZoomAPIClient(API_KEY, API_SECRET)
+    zoomapi = ZoomAPIClient(API_KEY, API_SECRET)
 
     # Get all ZP Users
-    phone_user_list = zoom_api_client.phone_list_users()
+    phone_user_list = zoomapi.phone().list_users()
 
     # Set Call Log Query Parameters
     page_size = 300
@@ -60,7 +60,7 @@ def get_call_logs(
                 # get this user's call logs
                 this_user_call_logs = []
 
-                this_user_call_logs = zoom_api_client.phone_get_user_call_logs(
+                this_user_call_logs = zoomapi.phone().get_user_call_logs(
                     userId=this_user["email"], from_date=from_date, to_date=to_date
                 )
 

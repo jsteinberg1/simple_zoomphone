@@ -99,12 +99,12 @@ def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
         USER_ID (str, optional): userid or email address to download call recordings for a single user.  Omit this parameter to access recordings from all users. Defaults to "".
     """
 
-    zoom_api_client = ZoomAPIClient(API_KEY, API_SECRET)
+    zoomapi = ZoomAPIClient(API_KEY, API_SECRET)
 
     # Determine whether we are getting call recordings for one user or all users
     if USER_ID == "":
         # Get all ZP Users
-        phone_user_list = zoom_api_client.phone_list_users()
+        phone_user_list = zoomapi.phone().list_users()
     else:
         phone_user_list = [{"email": USER_ID}]
 
@@ -116,7 +116,7 @@ def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
                 f"Getting list of call recordings for user {this_user['email']}", end=""
             )
 
-            this_user_recording = zoom_api_client.phone_get_user_call_recordings(
+            this_user_recording = zoomapi.phone().get_user_call_recordings(
                 userId=this_user["email"]
             )
 
@@ -128,9 +128,7 @@ def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
             print(f" - Warning: {e}")
 
     # Pass to function to write to disk
-    download_call_recordings(
-        user_2_recording=user_2_recording, token=zoom_api_client.jwt
-    )
+    download_call_recordings(user_2_recording=user_2_recording, token=zoomapi.jwt)
 
 
 # Run this script using argparse

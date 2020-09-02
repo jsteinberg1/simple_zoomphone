@@ -1,4 +1,11 @@
-class UserMixin(object):
+from .util import validateparam
+
+
+class Users:
+    def __init__(self, session, server):
+        self._session = session
+        self._server = server
+
     def _users_get(
         self,
         endpoint_url: str,
@@ -27,12 +34,12 @@ class UserMixin(object):
                 "You must specify a key_in_response_to_return if 'raw' = False"
             )
 
-        url = "https://" + self.server + endpoint_url
+        url = "https://" + self._server + endpoint_url
 
         # use while loop to handle Zoom Phone API rate limits
         rate_limit_counter = 0
         while True:
-            response = self.session.get(url, params=params)
+            response = self._session.get(url, params=params)
 
             if response.status_code == 200:
                 break
@@ -83,7 +90,7 @@ class UserMixin(object):
                     f"Unable to find {key_in_response_to_return} in json response"
                 )
 
-    def users_list_users(
+    def list_users(
         self,
         status: str = "active",
         role_id: str = None,
@@ -91,9 +98,11 @@ class UserMixin(object):
         raw: bool = False,
     ):
 
-        if status not in ["active", "inactive", "pending"]:
-            raise ValueError(
-                "'status' is set to an invalid value not supported by Zoom API"
+        if status:
+            validateparam(
+                status,
+                ["active", "inactive", "pending"],
+                "'status' is set to an invalid value not supported by Zoom API",
             )
 
         params = {"page_size": page_size, "status": status}
@@ -109,15 +118,15 @@ class UserMixin(object):
         )
         return response
 
-    def users_get_user(self, userId: str, login_type: str = None) -> dict:
+    def get_user(self, userId: str, login_type: str = None) -> dict:
         params = {}
 
-        if login_type != None:
-            if login_type not in ["0", "1", "99", "100", "101"]:
-                raise ValueError(
-                    "'login_type' is set to an invalid value not supported by Zoom API"
-                )
-
+        if login_type:
+            validateparam(
+                login_type,
+                ["0", "1", "99", "100", "101"],
+                "'login_type' is set to an invalid value not supported by Zoom API",
+            )
             params["login_type"] = login_type
 
         response = self._users_get(
