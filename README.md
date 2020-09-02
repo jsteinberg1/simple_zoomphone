@@ -1,4 +1,4 @@
-# Zoom Phone Sample Scripts
+# Simple Zoom Phone
 
 These scripts are sample scripts for Zoom Phone. See Zoom API documentation on marketplace.zoom.us
 
