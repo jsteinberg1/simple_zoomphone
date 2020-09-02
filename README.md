@@ -21,7 +21,7 @@ pip install -r requirements.txt
 ```
 
 ## Example Library Usage
-
+```
 from zoomphone import ZoomAPIClient
 
 zoomapi = ZoomAPIClient(
@@ -33,7 +33,7 @@ print(result)
 
 result = zoomapi.phone().list_users()
 print(result)
-
+```
 
 ## Sample Script Usage
 
