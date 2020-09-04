@@ -49,7 +49,6 @@ def enable_zoom_phone(
             print(f"Unable to determine Zoom Phone license status for user {userId}")
             sys.exit(1)
         else:
-            # enable Zoom Phone for existing Zoom User
             if zoom_phone_enabled == True:
                 print(f"User {userId} is already enabled for Zoom Phone")
                 sys.exit(1)
@@ -94,7 +93,11 @@ def enable_zoom_phone(
 
         if phone_number == "auto":
             # assign first available number in site
-            phone_number = site_unassigned_phone_number_list[0]
+            if len(site_unassigned_phone_number_list) > 0:
+                phone_number = site_unassigned_phone_number_list[0]
+            else:
+                print("No available phone numbers found in this ZP site.")
+                sys.exit(1)
         else:
             # find number specified for user
             try:
