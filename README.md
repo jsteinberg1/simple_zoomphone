@@ -4,7 +4,7 @@ Opinionated REST api client for Zoom Phone.
 
 See Zoom API documentation on marketplace.zoom.us
 
-This repo is a work in progress and the endoints below are still outstanding:
+This repo is currently under development and the endoints below are still outstanding:
 
 * /phone/blocked_list
 * /phone/call_queues/
