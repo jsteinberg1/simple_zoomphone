@@ -1,3 +1,5 @@
+import json
+
 from .util import validateparam
 
 
@@ -90,6 +92,47 @@ class Users:
                     f"Unable to find {key_in_response_to_return} in json response"
                 )
 
+    def _users_patch(self, endpoint_url: str, params: dict = None, data: dict = None):
+        """Generic HTTP Patch method for Zoom Phone API.
+
+        Args:
+            endpoint_url (str): endpoint url
+            params (dict, optional): parameters used in HTTP query parameters. Defaults to None.
+            raw (bool, optional): If set to 'True' will return raw JSON response as returned from Zoom API.  IF set to 'False', this function will complete pagination and return a list of all data returned on key 'key_in_response_to_return'. Defaults to False.
+        Raises:
+            ValueError: [description]
+            ValueError: [description]
+
+        Returns:
+            [type]: [description]
+        """
+
+        url = "https://" + self._server + endpoint_url
+
+        # use while loop to handle Zoom Phone API rate limits
+        rate_limit_counter = 0
+        while True:
+            response = self._session.patch(url, params=params, data=json.dumps(data))
+
+            if response.status_code in [200, 204]:
+                # pass requests response to calling method for further request validation
+                return response
+
+            elif response.status_code == 429:
+                # API returned that we are rate limited, wait one second and try again
+
+                if rate_limit_counter > 5:
+                    # we shouldn't get rate limited more than 5 times on a single query, but if we do error with exception
+                    raise RuntimeError(f"Exceeded rate limit requests on request {url}")
+                else:
+                    rate_limit_counter += 1  # increase rate limit counter
+                    time.sleep(1)  # sleep for a second, then try again
+
+            else:
+                raise RuntimeError(
+                    f"Received status code {response.status_code} on request {url}"
+                )
+
     def list_users(
         self,
         status: str = "active",
@@ -132,4 +175,27 @@ class Users:
         response = self._users_get(
             endpoint_url=f"/users/{userId}", params=params, raw=True
         )
+        return response
+
+    def get_user_settings(self, userId: str, login_type: str = None) -> dict:
+        params = {}
+
+        if login_type:
+            validateparam(
+                login_type,
+                ["0", "1", "99", "100", "101"],
+                "'login_type' is set to an invalid value not supported by Zoom API",
+            )
+            params["login_type"] = login_type
+
+        response = self._users_get(
+            endpoint_url=f"/users/{userId}/settings", params=params, raw=True
+        )
+        return response
+
+    def update_user_settings(self, userId: str, data: dict):
+        response = self._users_patch(
+            endpoint_url=f"/users/{userId}/settings", data=data
+        )
+
         return response

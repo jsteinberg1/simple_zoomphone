@@ -96,6 +96,46 @@ class Phone:
                     f"No {key_in_response_to_return} records in API response."
                 )
 
+    def _phone_post(self, endpoint_url: str, data: dict):
+        """Generic HTTP Post method for Zoom Phone API.
+
+        Args:
+            endpoint_url (str): endpoint url
+            data (dict): data json used in HTTP post body.
+            raw (bool, optional): If set to 'True' will return raw JSON response as returned from Zoom API.  IF set to 'False', this function will complete pagination and return a list of all data returned on key 'key_in_response_to_return'. Defaults to False.
+        Raises:
+            ValueError: [description]
+
+        Returns:
+            [type]: [description]
+        """
+
+        url = "https://" + self._server + endpoint_url
+
+        # use while loop to handle Zoom Phone API rate limits
+        rate_limit_counter = 0
+        while True:
+            response = self._session.post(url, data=json.dumps(data))
+
+            if response.status_code in [200, 201, 204]:
+                # pass requests response to calling method for further request validation
+                return response.content
+
+            elif response.status_code == 429:
+                # API returned that we are rate limited, wait one second and try again
+
+                if rate_limit_counter > 5:
+                    # we shouldn't get rate limited more than 5 times on a single query, but if we do error with exception
+                    raise RuntimeError(f"Exceeded rate limit requests on request {url}")
+                else:
+                    rate_limit_counter += 1  # increase rate limit counter
+                    time.sleep(1)  # sleep for a second, then try again
+
+            else:
+                raise RuntimeError(
+                    f"Received status code {response.status_code} on request {url}"
+                )
+
     def _phone_patch(self, endpoint_url: str, params: dict = None, data: dict = None):
         """Generic HTTP Patch method for Zoom Phone API.
 
@@ -377,7 +417,7 @@ class Phone:
 
         if response.status_code == 204:
             # read user's profile to verify change
-            response = self.phone_get_user_profile(userId=userId)
+            response = self.get_user_profile(userId=userId)
 
             if site_id and response["site_id"] != site_id:
                 raise RuntimeWarning("Error processing API request")
@@ -391,17 +431,23 @@ class Phone:
         else:
             raise RuntimeWarning("Error processing API request")
 
-    def assign_number_to_user():
-        pass
-        # TODO - do this next and test the http_post
+    def assign_number_to_user(self, userId: str, phone_number_id: str):
+        data = {"phone_numbers": [{"id": phone_number_id}]}
+        response = self._phone_post(
+            endpoint_url=f"/phone/users/{userId}/phone_numbers", data=data
+        )
+        return response
 
     def unassign_number_from_user():
         pass
         # TODO - do this next and test the http_delete
 
-    def assign_calling_plan_to_user():
-        pass
-        # TODO - do this next and test the http_post
+    def assign_calling_plan_to_user(self, userId: str, calling_plan_id: int):
+        data = {"calling_plans": [{"type": calling_plan_id}]}
+        response = self._phone_post(
+            endpoint_url=f"/phone/users/{userId}/calling_plans", data=data
+        )
+        return response
 
     def unassign_calling_plan_from_user():
         pass
@@ -423,3 +469,15 @@ class Phone:
             return response["calling_plans"]
         else:
             RuntimeWarning("Unable to find calling_plans in API response")
+
+    def list_phone_sites(self, page_size: int = 300, raw: bool = False):
+
+        validateparam(page_size, range(1, 301), "'page_size' must be between 1 - 300")
+
+        response = self._phone_get(
+            endpoint_url="/phone/sites",
+            raw=raw,
+            params={"page_size": page_size},
+            key_in_response_to_return="sites",
+        )
+        return response
