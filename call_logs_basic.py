@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 
+import logging
 import argparse
 import csv
 import datetime
 
 from zoomphone import ZoomAPIClient
+
+logger = logging.getLogger("zp")
+logger.setLevel(logging.INFO)
 
 
 def get_call_logs(
@@ -57,7 +61,7 @@ def get_call_logs(
 
         # iterate phone users
         for this_user in phone_user_list:
-            print(f"Getting Call Logs for user {this_user['email']}", end="")
+            logger.info(f"Getting Call Logs for user {this_user['email']}", end="")
             try:
                 # get this user's call logs
                 this_user_call_logs = []
@@ -89,19 +93,22 @@ def get_call_logs(
 
                     dict_writer.writerows(this_user_call_logs)
 
-                    print(f" - {len(this_user_call_logs)} call logs retrieved.")
+                    logger.info(f" - {len(this_user_call_logs)} call logs retrieved.")
 
             except Exception as e:
-                print(f" - Warning: {e}")
+                logger.info(f" - Warning: {e}")
                 error_count += 1
 
     # Print error count
-    print(f"Errors encountered: {error_count}")
+    logger.info(f"Errors encountered: {error_count}")
 
 
 # Run this script using argparse
 
 if __name__ == "__main__":
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    logger.addHandler(ch)
 
     # Run script with ArgParser
 

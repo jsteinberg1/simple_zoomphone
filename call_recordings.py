@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
+import logging
 import argparse
 import os
 import datetime
 import requests
 
 from zoomphone import ZoomAPIClient
+
+logger = logging.getLogger("zp")
+logger.setLevel(logging.INFO)
 
 
 def download_call_recordings(user_2_recording: list, token: str):
@@ -31,7 +35,7 @@ def download_call_recordings(user_2_recording: list, token: str):
     dirName = "recordings"
 
     for this_user in user_2_recording:
-        print(f"Downloading MP3 files for user {this_user}", end="")
+        logger.info(f"Downloading MP3 files for user {this_user}", end="")
 
         download_count = 0
 
@@ -89,7 +93,7 @@ def download_call_recordings(user_2_recording: list, token: str):
 
                 download_count += 1
 
-        print(f" - {download_count} new mp3 file(s) downloaded.")
+        logger.info(f" - {download_count} new mp3 file(s) downloaded.")
 
 
 def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
@@ -114,7 +118,7 @@ def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
     user_2_recording = {}
     for this_user in phone_user_list:
         try:
-            print(
+            logger.info(
                 f"Getting list of call recordings for user {this_user['email']}", end=""
             )
 
@@ -125,9 +129,9 @@ def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
             if len(this_user_recording) > 0:
                 user_2_recording[this_user["email"]] = this_user_recording
 
-            print(f" - {len(this_user_recording)} recordings stored in ZP.")
+            logger.info(f" - {len(this_user_recording)} recordings stored in ZP.")
         except Exception as e:
-            print(f" - Warning: {e}")
+            logger.info(f" - Warning: {e}")
 
     # Pass to function to write to disk
     download_call_recordings(user_2_recording=user_2_recording, token=zoomapi.jwt)
@@ -136,6 +140,9 @@ def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
 # Run this script using argparse
 
 if __name__ == "__main__":
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    logger.addHandler(ch)
 
     # Run script with ArgParser
 

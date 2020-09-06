@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 
 import sys
+import logging
 import argparse
 import time
 
 from zoomphone.exceptions import ZoomAPIError
 
 from zoomphone import ZoomAPIClient
+
+logger = logging.getLogger("zp")
+logger.setLevel(logging.INFO)
 
 
 def enable_zoom_phone(
@@ -28,7 +32,7 @@ def enable_zoom_phone(
     """
 
     if phone_number != None and calling_plan_name == None:
-        print("Must specify calling plan when assigning phone number")
+        logger.info("Must specify calling plan when assigning phone number")
         sys.exit(1)
 
     # Search for ZP Site Name, check if zoom phone site exists, and get ZP Site ID
@@ -42,7 +46,7 @@ def enable_zoom_phone(
             )
             site_id = site["id"]
         except StopIteration:
-            print(f"Unable to find ZP site with name {site_name}")
+            logger.info(f"Unable to find ZP site with name {site_name}")
             sys.exit(1)
 
     # check if user already has Zoom Phone enabled
@@ -51,11 +55,13 @@ def enable_zoom_phone(
         try:
             zoom_phone_enabled = response["feature"]["zoom_phone"]
         except:
-            print(f"Unable to determine Zoom Phone license status for user {userId}")
+            logger.info(
+                f"Unable to determine Zoom Phone license status for user {userId}"
+            )
             sys.exit(1)
         else:
             if zoom_phone_enabled == True:
-                print(f"User {userId} is already enabled for Zoom Phone")
+                logger.info(f"User {userId} is already enabled for Zoom Phone")
                 sys.exit(1)
 
     # check for valid calling plan
@@ -71,7 +77,7 @@ def enable_zoom_phone(
             valid_calling_plan_names = ", ".join(
                 [item["name"] for item in calling_plan_list]
             )
-            print(
+            logger.info(
                 f"{calling_plan_name} is not a valid calling plan.\nValid calling plans: {valid_calling_plan_names}"
             )
             sys.exit(1)
@@ -81,7 +87,7 @@ def enable_zoom_phone(
 
         if "available" in calling_plan:
             if calling_plan["available"] == 0:
-                print(
+                logger.info(
                     f"Calling Plan {calling_plan_name} does not have any available licenses to allocate."
                 )
                 sys.exit(1)
@@ -99,7 +105,7 @@ def enable_zoom_phone(
             if len(site_unassigned_phone_number_list) > 0:
                 phone_number = site_unassigned_phone_number_list[0]
             else:
-                print("No available phone numbers found in this ZP site.")
+                logger.info("No available phone numbers found in this ZP site.")
                 sys.exit(1)
         else:
             # find number specified for user
@@ -110,7 +116,7 @@ def enable_zoom_phone(
                     if item["number"] == phone_number
                 )
             except StopIteration:
-                print(
+                logger.info(
                     f"Specified {phone_number} was not found as an 'unassigned' number on ZP site {site_name}. Phone number must be specified in E.164 format"
                 )
                 sys.exit(1)
@@ -159,17 +165,17 @@ def enable_zoom_phone(
                     extension_assignment_attempts -= 1
                     extension_number += 1
                 else:
-                    print(f"Unable to change extension - error: {err}")
+                    logger.info(f"Unable to change extension - error: {err}")
                     break
 
                 if extension_assignment_attempts == 0:
-                    print(f"Unable to change extension - error: {err}")
+                    logger.info(f"Unable to change extension - error: {err}")
                     break
 
                 time.sleep(1)
 
             except:
-                print(f"Unable to change extension - error: {sys.exc_info()[0]}")
+                logger.info(f"Unable to change extension - error: {sys.exc_info()[0]}")
                 break
 
     # assign calling plan
@@ -187,21 +193,26 @@ def enable_zoom_phone(
     # Perform validation
     user_profile_response = zoomapi.phone().get_user_profile(userId=userId)
     if user_profile_response:
-        print(f"Finished adding user {user_profile_response['email']}")
-        print(f"Extension: {user_profile_response['extension_number']}")
+        logger.info(f"Finished adding user {user_profile_response['email']}")
+        logger.info(f"Extension: {user_profile_response['extension_number']}")
         if len(user_profile_response["calling_plans"]) > 0:
-            print(f"Calling Plan: {user_profile_response['calling_plans'][0]['name']}")
+            logger.info(
+                f"Calling Plan: {user_profile_response['calling_plans'][0]['name']}"
+            )
         if len(user_profile_response["phone_numbers"]) > 0:
-            print(
+            logger.info(
                 f"Phone Number: {user_profile_response['phone_numbers'][0]['number']}"
             )
     else:
-        print("Unable to determine status of script execution.")
+        logger.info("Unable to determine status of script execution.")
 
 
 if __name__ == "__main__":
-    # Run script with ArgParser
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    logger.addHandler(ch)
 
+    # Run script with ArgParser
     parser = argparse.ArgumentParser(
         prog="Zoom Phone User Provisioning",
         description="Script to enable Zoom Phone feature for existing Zoom user via marketplace.zoom.us API.",
