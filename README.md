@@ -40,16 +40,21 @@ print(result)
 
 ## Sample Script Usage
 
+### Zoom Phone User Provisioning
+
+user_provisioning.py -h
+
+user_provisioning.py <API_KEY> <API_SECRET> bill.smith@email.com "Los Angeles" --calling_plan_name "Zoom Phone Pro" --phone_number "auto"
+
 ### Call Log Exporter
 
-python call_logs.py -h
+call_logs.py -h
 
-python call_logs.py <API_KEY> <API_SECRET> --from_date=2019-12-31 --number_of_days=30 --department="Sales" --job_title="Inside Sales Representative" --call_direction=all
+call_logs.py <API_KEY> <API_SECRET> --from_date=2019-12-31 --number_of_days=30 --department="Sales" --job_title="Inside Sales Representative" --call_direction=all
 
 ### Call Recording Exporter
 
 Download call recordings MP3 files. Specify email address for a single user or omit for all users
+call_recordings.py -h
 
-python call_recordings.py -h
-
-python call_recordings.py <API_KEY> <API_SECRET> --email=bill.smith@email.com
+call_recordings.py <API_KEY> <API_SECRET> --email=bill.smith@email.com
