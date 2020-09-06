@@ -1,6 +1,10 @@
+#!/usr/bin/env python3
+
 import sys
 import argparse
 import time
+
+from zoomphone.exceptions import ZoomAPIError
 
 from zoomphone import ZoomAPIClient
 
@@ -17,13 +21,10 @@ def enable_zoom_phone(
 
     Args:
         userId (str): userId or email address
-        site_id (str): Zoom Phone Site ID
+        site_name (str): Zoom Phone Site Name
+        calling_plan_name (str): Name of calling plan
         extension_number (str): Extension number to assign to user.  If extension is omited, then the next available extension will be assigned.
         phone_number (str): Phone Number to assign to user.  To assign a random phone number from the unassigned list on the ZP site, set to 'auto'
-    """
-    # TODO:
-    """
-    add logic to auto assign next available extension
     """
 
     if phone_number != None and calling_plan_name == None:
@@ -34,7 +35,11 @@ def enable_zoom_phone(
     if site_name:
         site_response = zoomapi.phone().list_phone_sites()
         try:
-            site = next(item for item in site_response if item["name"] == site_name)
+            site = next(
+                item
+                for item in site_response
+                if item["name"].lower() == site_name.lower()
+            )
             site_id = site["id"]
         except StopIteration:
             print(f"Unable to find ZP site with name {site_name}")
@@ -55,7 +60,6 @@ def enable_zoom_phone(
 
     # check for valid calling plan
     if calling_plan_name:
-        calling_plan_id = None
         calling_plan_list = zoomapi.phone().list_calling_plans()
         try:
             calling_plan = next(
@@ -64,7 +68,12 @@ def enable_zoom_phone(
                 if item["name"].lower() == calling_plan_name.lower()
             )
         except:
-            Print(f"{calling_plan_name} is not a valid calling plan")
+            valid_calling_plan_names = ", ".join(
+                [item["name"] for item in calling_plan_list]
+            )
+            print(
+                f"{calling_plan_name} is not a valid calling plan.\nValid calling plans: {valid_calling_plan_names}"
+            )
             sys.exit(1)
 
         if "type" in calling_plan:
@@ -76,14 +85,8 @@ def enable_zoom_phone(
                     f"Calling Plan {calling_plan_name} does not have any available licenses to allocate."
                 )
                 sys.exit(1)
-
-    # check for extension - if not provided, then find next available extension for this user
-    if extension_number == None:
-        extension_number = "tbd"  # TODO - find APIs to get the next available extension in the ZP site.
-        print(
-            "Automatic assignment of extension is not currently working, please manually specify extension."
-        )
-        sys.exit(1)
+    else:
+        calling_plan_id = None
 
     # Find phone number to assign to user
     if phone_number:
@@ -112,6 +115,17 @@ def enable_zoom_phone(
                 )
                 sys.exit(1)
 
+        # check for extension - if not provided, then find next available extension for this user
+
+    # Find extenison number to assign to user
+    if extension_number == None:
+        # Extension number is not supplied, so find the max extension value at the site to use for baseline to assign to this new user
+        # This needs to be checked before enabling ZP for this user, otherwise the system will autogen an extension for this user which might affect the next extension selection
+        site_users_list = zoomapi.phone().list_users(site_id=site_id)
+        extension_number_list = [user["extension_number"] for user in site_users_list]
+        extension_number = max(extension_number_list) + 1
+
+    # Enable Zoom Phone feature
     response = zoomapi.users().update_user_settings(
         userId=userId,
         data={
@@ -120,10 +134,43 @@ def enable_zoom_phone(
     )
     time.sleep(2)  # give time for ZP to provision user
 
-    # change site and extension
-    response = zoomapi.phone().update_user_profile(
-        userId=userId, extension_number=extension_number, site_id=site_id
-    )
+    # change site
+    if site_id:
+        response = zoomapi.phone().update_user_profile(userId=userId, site_id=site_id)
+
+    # change extension
+    if extension_number:
+        # attempt to change extension.
+        """
+        Because we don't have a good way to check if this extension is available
+        before attempting the change,  we will catch the error and increment
+        the extension by one and try up to 10 times to assign the extension.
+        """
+        extension_assignment_attempts = 10
+
+        while True:
+            try:
+                response = zoomapi.phone().update_user_profile(
+                    userId=userId, extension_number=extension_number
+                )
+                break
+            except ZoomAPIError as err:
+                if str(err).startswith(f"Extension number {extension_number} is taken"):
+                    extension_assignment_attempts -= 1
+                    extension_number += 1
+                else:
+                    print(f"Unable to change extension - error: {err}")
+                    break
+
+                if extension_assignment_attempts == 0:
+                    print(f"Unable to change extension - error: {err}")
+                    break
+
+                time.sleep(1)
+
+            except:
+                print(f"Unable to change extension - error: {sys.exc_info()[0]}")
+                break
 
     # assign calling plan
     if calling_plan_id:
@@ -153,7 +200,6 @@ def enable_zoom_phone(
 
 
 if __name__ == "__main__":
-
     # Run script with ArgParser
 
     parser = argparse.ArgumentParser(

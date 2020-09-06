@@ -1,6 +1,7 @@
 import json
 
 from .util import validateparam
+from .exceptions import ZoomAPIError
 
 
 class Users:
@@ -51,13 +52,13 @@ class Users:
 
                 if rate_limit_counter > 5:
                     # we shouldn't get rate limited more than 5 times on a single query, but if we do error with exception
-                    raise RuntimeError(f"Exceeded rate limit requests on request {url}")
+                    raise ZoomAPIError(f"Exceeded rate limit requests on request {url}")
                 else:
                     rate_limit_counter += 1  # increase rate limit counter
                     time.sleep(1)  # sleep for a second, then try again
 
             else:
-                raise RuntimeError(
+                raise ZoomAPIError(
                     f"Received status code {response.status_code} on request {url}"
                 )
 
@@ -88,7 +89,7 @@ class Users:
                 return list_of_paged_data_to_return
 
             else:
-                raise ValueError(
+                raise ZoomAPIError(
                     f"Unable to find {key_in_response_to_return} in json response"
                 )
 
@@ -123,15 +124,18 @@ class Users:
 
                 if rate_limit_counter > 5:
                     # we shouldn't get rate limited more than 5 times on a single query, but if we do error with exception
-                    raise RuntimeError(f"Exceeded rate limit requests on request {url}")
+                    raise ZoomAPIError(f"Exceeded rate limit requests on request {url}")
                 else:
                     rate_limit_counter += 1  # increase rate limit counter
                     time.sleep(1)  # sleep for a second, then try again
 
             else:
-                raise RuntimeError(
-                    f"Received status code {response.status_code} on request {url}"
-                )
+                if "message" in response.json():
+                    raise ZoomAPIError(response.json()["message"])
+                else:
+                    raise ZoomAPIError(
+                        f"Received status code {response.status_code} on request {url}"
+                    )
 
     def list_users(
         self,

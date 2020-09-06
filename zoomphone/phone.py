@@ -3,6 +3,7 @@ import json
 import datetime
 
 from .util import validateparam
+from .exceptions import ZoomAPIError
 
 
 class Phone:
@@ -29,7 +30,6 @@ class Phone:
 
         Raises:
             ValueError: [description]
-            ValueError: [description]
 
         Returns:
             [type]: [description]
@@ -55,13 +55,13 @@ class Phone:
 
                 if rate_limit_counter > 5:
                     # we shouldn't get rate limited more than 5 times on a single query, but if we do error with exception
-                    raise RuntimeError(f"Exceeded rate limit requests on request {url}")
+                    raise ZoomAPIError(f"Exceeded rate limit requests on request {url}")
                 else:
                     rate_limit_counter += 1  # increase rate limit counter
                     time.sleep(1)  # sleep for a second, then try again
 
             else:
-                raise RuntimeError(
+                raise ZoomAPIError(
                     f"Received status code {response.status_code} on request {url}"
                 )
 
@@ -92,7 +92,7 @@ class Phone:
                 return list_of_paged_data_to_return
 
             else:
-                raise RuntimeWarning(
+                raise ZoomAPIError(
                     f"No {key_in_response_to_return} records in API response."
                 )
 
@@ -126,15 +126,18 @@ class Phone:
 
                 if rate_limit_counter > 5:
                     # we shouldn't get rate limited more than 5 times on a single query, but if we do error with exception
-                    raise RuntimeError(f"Exceeded rate limit requests on request {url}")
+                    raise ZoomAPIError(f"Exceeded rate limit requests on request {url}")
                 else:
                     rate_limit_counter += 1  # increase rate limit counter
                     time.sleep(1)  # sleep for a second, then try again
 
             else:
-                raise RuntimeError(
-                    f"Received status code {response.status_code} on request {url}"
-                )
+                if "message" in response.json():
+                    raise ZoomAPIError(response.json()["message"])
+                else:
+                    raise ZoomAPIError(
+                        f"Received status code {response.status_code} on request {url}"
+                    )
 
     def _phone_patch(self, endpoint_url: str, params: dict = None, data: dict = None):
         """Generic HTTP Patch method for Zoom Phone API.
@@ -173,18 +176,26 @@ class Phone:
                     time.sleep(1)  # sleep for a second, then try again
 
             else:
-                raise RuntimeError(
-                    f"Received status code {response.status_code} on request {url}"
-                )
+                if "message" in response.json():
+                    raise ZoomAPIError(response.json()["message"])
+                else:
+                    raise ZoomAPIError(
+                        f"Received status code {response.status_code} on request {url}"
+                    )
 
-    def list_users(self, page_size: int = 100, raw: bool = False):
-        if page_size > 100 or page_size < 1:
-            raise ValueError("'page_size' must be between 1 - 100")
+    def list_users(self, site_id: str = None, page_size: int = 100, raw: bool = False):
+        validateparam(page_size, range(1, 101), "'page_size' must be between 1 - 100")
+
+        params = {}
+        params["page_size"] = page_size
+
+        if site_id:
+            params["site_id"] = site_id
 
         response = self._phone_get(
             endpoint_url="/phone/users",
             raw=raw,
-            params={"page_size": page_size},
+            params=params,
             key_in_response_to_return="users",
         )
         return response
@@ -384,52 +395,34 @@ class Phone:
         self, userId: str, extension_number: str = None, site_id: str = None
     ) -> dict:
         data = {}
+        # the API will not allow both site_id and extension_number to be changed at the same time.
 
-        if site_id and extension_number:
-            # the API will not allow both site_id and extension_number to be changed at the same time.
-
-            # change site_id first
+        if site_id:
             data = {}
             data["site_id"] = site_id
             response = self._phone_patch(
                 endpoint_url=f"/phone/users/{userId}", data=data
             )
+            # ZP needs some time to process this change before making other changes
+            time.sleep(2)
 
-            if response.status_code == 204:
-                # site was changed successfully, now change extension number
-                time.sleep(1)
-                data = {}
-                data["extension_number"] = extension_number
-                response = self._phone_patch(
-                    endpoint_url=f"/phone/users/{userId}", data=data
-                )
-
-        else:
-            if site_id:
-                data["site_id"] = site_id
-
-            if extension_number:
-                data["extension_number"] = extension_number
-
+        if extension_number:
+            data = {}
+            data["extension_number"] = extension_number
             response = self._phone_patch(
                 endpoint_url=f"/phone/users/{userId}", data=data
             )
 
-        if response.status_code == 204:
-            # read user's profile to verify change
-            response = self.get_user_profile(userId=userId)
+        # read user's profile to verify change
+        response = self.get_user_profile(userId=userId)
 
-            if site_id and response["site_id"] != site_id:
-                raise RuntimeWarning("Error processing API request")
+        if site_id and response["site_id"] != site_id:
+            raise ZoomAPIError("Error processing API request")
 
-            if extension_number and response["extension_number"] != int(
-                extension_number
-            ):
-                raise RuntimeWarning("Error processing API request")
+        if extension_number and response["extension_number"] != int(extension_number):
+            raise ZoomAPIError("Error processing API request")
 
-            return response
-        else:
-            raise RuntimeWarning("Error processing API request")
+        return response
 
     def assign_number_to_user(self, userId: str, phone_number_id: str):
         data = {"phone_numbers": [{"id": phone_number_id}]}
@@ -468,7 +461,7 @@ class Phone:
         if "calling_plans" in response:
             return response["calling_plans"]
         else:
-            RuntimeWarning("Unable to find calling_plans in API response")
+            ZoomAPIError("Unable to find calling_plans in API response")
 
     def list_phone_sites(self, page_size: int = 300, raw: bool = False):
 
