@@ -217,34 +217,40 @@ if __name__ == "__main__":
         prog="Zoom Phone User Provisioning",
         description="Script to enable Zoom Phone feature for existing Zoom user via marketplace.zoom.us API.",
     )
-    parser.add_argument("API_KEY", type=str, help="API key for Zoom account.")
-    parser.add_argument("API_SECRET", type=str, help="API secret for Zoom account.")
     parser.add_argument(
-        "email",
+        "-API_KEY", type=str, help="API key for Zoom account.", required=True
+    )
+    parser.add_argument(
+        "-API_SECRET", type=str, help="API secret for Zoom account.", required=True
+    )
+    parser.add_argument(
+        "-email",
         type=str,
         default="",
         help="Specify the email address to download recordings for a single user, otherwise will download all user recordings",
+        required=True,
     )
     parser.add_argument(
-        "site_name",
+        "-site_name",
         type=str,
         default="",
         help="Specify the Zoom Phone Site Name where this user should be assigned.",
+        required=True,
     )
     parser.add_argument(
-        "--extension",
+        "-extension",
         type=str,
         default=None,
         help="Specify the Zoom Phone Extension to assign to this user. Omit to have extension automatically assigned.",
     )
     parser.add_argument(
-        "--calling_plan_name",
+        "-calling_plan_name",
         type=str,
         default=None,
         help="Specify the Zoom Phone Calling Plan to assign to this user.",
     )
     parser.add_argument(
-        "--phone_number",
+        "-phone_number",
         type=str,
         default=None,
         help="Specify the Zoom Phone DID/DDI to assign to this user.  Set to 'auto' to automatically assign an available DID/DDI at the Zoom Phone site.",

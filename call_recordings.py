@@ -35,7 +35,7 @@ def download_call_recordings(user_2_recording: list, token: str):
     dirName = "recordings"
 
     for this_user in user_2_recording:
-        logger.info(f"Downloading MP3 files for user {this_user}", end="")
+        logger.info(f"Downloading MP3 files for user {this_user}")
 
         download_count = 0
 
@@ -119,7 +119,7 @@ def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
     for this_user in phone_user_list:
         try:
             logger.info(
-                f"Getting list of call recordings for user {this_user['email']}", end=""
+                f"Getting list of call recordings for user {this_user['email']}"
             )
 
             this_user_recording = zoomapi.phone().get_user_call_recordings(
@@ -150,10 +150,20 @@ if __name__ == "__main__":
         prog="Zoom Phone Call Recording Exporter",
         description="Script to access Zoom Phone Call Recordings via marketplace.zoom.us API.",
     )
-    parser.add_argument("API_KEY", type=str, help="API key for Zoom account.")
-    parser.add_argument("API_SECRET", type=str, help="API secret for Zoom account.")
     parser.add_argument(
-        "--email",
+        "-API_KEY",
+        type=str,
+        help="API key for Zoom account.",
+        required=True,
+    )
+    parser.add_argument(
+        "-API_SECRET",
+        type=str,
+        help="API secret for Zoom account.",
+        required=True,
+    )
+    parser.add_argument(
+        "-email",
         type=str,
         default="",
         help="Specify the email address to download recordings for a single user, otherwise will download all user recordings",

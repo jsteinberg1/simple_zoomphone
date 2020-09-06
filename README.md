@@ -44,17 +44,17 @@ print(result)
 
 user_provisioning.py -h
 
-user_provisioning.py <API_KEY> <API_SECRET> bill.smith@email.com "Los Angeles" --calling_plan_name "Zoom Phone Pro" --phone_number "auto"
+user_provisioning.py -API_KEY <API_KEY> -API_SECRET <API_SECRET> -email bill.smith@email.com -site_name "Los Angeles" -calling_plan_name "Zoom Phone Pro" -phone_number "auto"
 
 ### Call Log Exporter
 
 call_logs.py -h
 
-call_logs.py <API_KEY> <API_SECRET> --from_date=2019-12-31 --number_of_days=30 --department="Sales" --job_title="Inside Sales Representative" --call_direction=all
+call_logs.py -API_KEY <API_KEY> -API_SECRET <API_SECRET> -from_date 2019-12-31 -number_of_days 30 -department "Sales" -job_title "Inside Sales Representative" -call_direction all
 
 ### Call Recording Exporter
 
 Download call recordings MP3 files. Specify email address for a single user or omit for all users
 call_recordings.py -h
 
-call_recordings.py <API_KEY> <API_SECRET> --email=bill.smith@email.com
+call_recordings.py -API_KEY <API_KEY> -API_SECRET <API_SECRET> -email bill.smith@email.com

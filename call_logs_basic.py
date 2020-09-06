@@ -61,7 +61,7 @@ def get_call_logs(
 
         # iterate phone users
         for this_user in phone_user_list:
-            logger.info(f"Getting Call Logs for user {this_user['email']}", end="")
+            logger.info(f"Getting Call Logs for user {this_user['email']}")
             try:
                 # get this user's call logs
                 this_user_call_logs = []
@@ -116,22 +116,26 @@ if __name__ == "__main__":
         prog="Zoom Phone Call Log Exporter",
         description="Script to access Zoom Phone Call Logs via marketplace.zoom.us API.",
     )
-    parser.add_argument("API_KEY", type=str, help="API key for Zoom account.")
-    parser.add_argument("API_SECRET", type=str, help="API secret for Zoom account.")
     parser.add_argument(
-        "--from_date",
+        "-API_KEY", type=str, help="API key for Zoom account.", required=True
+    )
+    parser.add_argument(
+        "-API_SECRET", type=str, help="API secret for Zoom account.", required=True
+    )
+    parser.add_argument(
+        "-from_date",
         type=lambda s: datetime.datetime.strptime(s, "%Y-%m-%d"),
         default=datetime.datetime.today(),
         help="Starting date for call log query. (e.g. 2019-12-31)",
     )
     parser.add_argument(
-        "--number_of_days",
+        "-number_of_days",
         type=int,
         default=1,
         help="Number of days to pull call logs. Max 30 days.",
     )
     parser.add_argument(
-        "--call_direction",
+        "-call_direction",
         type=str,
         default="all",
         help="Specify 'all', 'inbound', or 'outbound'",
