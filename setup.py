@@ -15,7 +15,7 @@ setuptools.setup(
     url="https://github.com/jsteinberg1/simple_zoomphone",
     packages=["simple_zoomphone"],
     include_package_data=True,
-    platforms="any"
+    platforms="any",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU3 License",
