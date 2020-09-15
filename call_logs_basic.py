@@ -5,7 +5,7 @@ import argparse
 import csv
 import datetime
 
-from zoomphone import ZoomAPIClient
+from simple_zoomphone import ZoomAPIClient
 
 logger = logging.getLogger("zp")
 logger.setLevel(logging.INFO)

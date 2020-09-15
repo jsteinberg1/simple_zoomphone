@@ -5,9 +5,9 @@ import logging
 import argparse
 import time
 
-from zoomphone.exceptions import ZoomAPIError
+from simple_zoomphone.exceptions import ZoomAPIError
 
-from zoomphone import ZoomAPIClient
+from simple_zoomphone import ZoomAPIClient
 
 logger = logging.getLogger("zp")
 logger.setLevel(logging.INFO)

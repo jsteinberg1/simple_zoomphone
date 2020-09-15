@@ -6,7 +6,7 @@ import os
 import datetime
 import requests
 
-from zoomphone import ZoomAPIClient
+from simple_zoomphone import ZoomAPIClient
 
 logger = logging.getLogger("zp")
 logger.setLevel(logging.INFO)
