@@ -119,7 +119,10 @@ class Phone:
 
             if response.status_code in [200, 201, 204]:
                 # pass requests response to calling method for further request validation
-                return response.content
+                if response.content in [b""]:
+                    return response.status_code
+                else:
+                    return response.content
 
             elif response.status_code == 429:
                 # API returned that we are rate limited, wait one second and try again
@@ -506,5 +509,35 @@ class Phone:
                 },
                 "short_extension": {"length": short_extension_length},
             },
+        )
+        return response
+
+    def list_call_queues(self, page_size: int = 100, raw: bool = False):
+
+        validateparam(page_size, range(1, 101), "'page_size' must be between 1 - 100")
+
+        response = self._phone_get(
+            endpoint_url="/phone/call_queues",
+            raw=raw,
+            params={"page_size": page_size},
+            key_in_response_to_return="call_queues",
+        )
+        return response
+
+    def add_members_to_queue(self, callQueueId: str, emails: list):
+
+        user_list = [{"email": email} for email in emails]
+
+        data = {"members": {"users": user_list}}
+
+        response = self._phone_post(
+            endpoint_url=f"/phone/call_queues/{callQueueId}/members", data=data
+        )
+        return response
+
+    def get_call_queue_details(self, callQueueId: str):
+        response = self._phone_get(
+            endpoint_url=f"/phone/call_queues/{callQueueId}",
+            raw=True,
         )
         return response
