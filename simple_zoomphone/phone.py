@@ -474,3 +474,37 @@ class Phone:
             key_in_response_to_return="sites",
         )
         return response
+
+    def create_phone_site(
+        self,
+        name: str,
+        auto_receptionist_name: str,
+        emergency_address_country: str,
+        emergency_address_address_line1: str,
+        emergency_address_city: str,
+        emergency_address_zip: str,
+        emergency_address_state_code: str,
+        emergency_address_address_line2: str = None,
+        site_code: int = None,
+        short_extension_length: int = None,
+    ):
+        # TODO add logic on short extension length and site code
+
+        response = self._phone_post(
+            endpoint_url="/phone/sites",
+            data={
+                "name": name,
+                "site_code": site_code,
+                "auto_receptionist_name": auto_receptionist_name,
+                "default_emergency_address": {
+                    "country": emergency_address_country,
+                    "address_line1": emergency_address_address_line1,
+                    "city": emergency_address_city,
+                    "zip": emergency_address_zip,
+                    "state_code": emergency_address_state_code,
+                    "address_line2": emergency_address_address_line2,
+                },
+                "short_extension": {"length": short_extension_length},
+            },
+        )
+        return response

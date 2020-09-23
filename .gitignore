@@ -3,7 +3,8 @@
 __pycache__
 .DS_Store
 /test_scripts/*
-*test.py
 /*.csv
 /recordings/*
 *.mp3
+.env
+TODO
