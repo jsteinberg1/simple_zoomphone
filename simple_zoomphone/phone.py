@@ -250,15 +250,23 @@ class Phone:
     ):
 
         validateparam(page_size, range(1, 301), "'page_size' must be between 1 - 300")
-
-        response = self._phone_get(
-            endpoint_url=f"/phone/users/{userId}/recordings",
-            params={
-                "page_size": page_size,
-            },
-            raw=raw,
-            key_in_response_to_return="recordings",
-        )
+        try:
+            response = self._phone_get(
+                endpoint_url=f"/phone/users/{userId}/recordings",
+                params={
+                    "page_size": page_size,
+                },
+                raw=raw,
+                key_in_response_to_return="recordings",
+            )
+        except ZoomAPIError as e:
+            if e == "No recordings records in API response.":
+                """
+                The Zoom API will not return any 'recordings' fields if the user has no recordings, typically this errors the '_phone_get' method, but we need to override that in this case and return an empty list.
+                """
+                response = []
+            else:
+                raise ZoomAPIError(e)
 
         return response
 
