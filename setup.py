@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="simple_zoomphone",
-    version="0.0.1",
+    version="0.0.2",
     author="Justin Steinberg",
     author_email="jsteinberg@gmail.com",
     install_requires=["requests", "PyJWT", "requests_oauthlib"],

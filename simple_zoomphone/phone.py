@@ -260,7 +260,7 @@ class Phone:
                 key_in_response_to_return="recordings",
             )
         except ZoomAPIError as e:
-            if e == "No recordings records in API response.":
+            if str(e) == "No recordings records in API response.":
                 """
                 The Zoom API will not return any 'recordings' fields if the user has no recordings, typically this errors the '_phone_get' method, but we need to override that in this case and return an empty list.
                 """
