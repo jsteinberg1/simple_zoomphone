@@ -16,7 +16,7 @@ This repo is currently under development and the endoints below are still outsta
 
 ## Package Installation
 
-1. Install Python 3.8+
+
 
 
 ```bash
