@@ -14,16 +14,16 @@ This repo is currently under development and the endoints below are still outsta
 * /phone/common_area_phones
 
 
-## Installation
+## Package Installation
 
 1. Install Python 3.8+
-2. Install required Libraries
+
 
 ```bash
-pip install -r requirements.txt
+pip install simple-zoomphone
 ```
 
-## Example Library Usage
+## Example Package Usage
 ```
 from zoomphone import ZoomAPIClient
 
