@@ -25,7 +25,7 @@ pip install simple-zoomphone
 
 ## Example Package Usage
 ```
-from zoomphone import ZoomAPIClient
+from simple-zoomphone import ZoomAPIClient
 
 zoomapi = ZoomAPIClient(
     API_KEY=" <Zoom API KEY here> ", API_SECRET=" <Zoom API Secret here>  "
