@@ -56,7 +56,7 @@ class Users:
                 else:
                     rate_limit_counter += 1  # increase rate limit counter
                     time.sleep(1)  # sleep for a second, then try again
-
+                   
             else:
                 raise ZoomAPIError(
                     f"Received status code {response.status_code} on request {url}"
@@ -73,10 +73,10 @@ class Users:
                 list_of_paged_data_to_return = raw_json[key_in_response_to_return]
 
                 # complete pagination to retrive all data
-                while raw_json["page_number"] < raw_json["page_count"]:
-                    params["page_number"] = raw_json["page_number"] + 1
+                while raw_json["next_page_token"] != "":
+                    params["next_page_token"] = raw_json["next_page_token"]
 
-                    raw_json = self._phone_get(
+                    raw_json = self._users_get(
                         endpoint_url, params, True, key_in_response_to_return
                     )
 
