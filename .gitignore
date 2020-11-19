@@ -7,4 +7,5 @@ __pycache__
 /recordings/*
 *.mp3
 .env
+test*
 TODO
