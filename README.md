@@ -31,10 +31,10 @@ zoomapi = ZoomAPIClient(
     API_KEY=" <Zoom API KEY here> ", API_SECRET=" <Zoom API Secret here>  "
 )
 
-result = zoomapi.users().list_users()
+result = zoomapi.users.list_users()
 print(result)
 
-result = zoomapi.phone().list_users()
+result = zoomapi.phone.list_users()
 print(result)
 ```
 
