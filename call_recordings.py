@@ -110,7 +110,7 @@ def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
     # Determine whether we are getting call recordings for one user or all users
     if USER_ID == "":
         # Get all ZP Users
-        phone_user_list = zoomapi.phone().list_users()
+        phone_user_list = zoomapi.phone.list_users()
     else:
         phone_user_list = [{"email": USER_ID}]
 
@@ -122,7 +122,7 @@ def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
                 f"Getting list of call recordings for user {this_user['email']}"
             )
 
-            this_user_recording = zoomapi.phone().get_user_call_recordings(
+            this_user_recording = zoomapi.phone.get_user_call_recordings(
                 userId=this_user["email"]
             )
 

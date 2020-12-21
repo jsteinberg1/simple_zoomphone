@@ -37,7 +37,7 @@ def enable_zoom_phone(
 
     # Search for ZP Site Name, check if zoom phone site exists, and get ZP Site ID
     if site_name:
-        site_response = zoomapi.phone().list_phone_sites()
+        site_response = zoomapi.phone.list_phone_sites()
         try:
             site = next(
                 item
@@ -51,7 +51,7 @@ def enable_zoom_phone(
 
     # check if user already has Zoom Phone enabled
     if userId:
-        response = zoomapi.users().get_user_settings(userId=userId)
+        response = zoomapi.users.get_user_settings(userId=userId)
         try:
             zoom_phone_enabled = response["feature"]["zoom_phone"]
         except:
@@ -66,7 +66,7 @@ def enable_zoom_phone(
 
     # check for valid calling plan
     if calling_plan_name:
-        calling_plan_list = zoomapi.phone().list_calling_plans()
+        calling_plan_list = zoomapi.phone.list_calling_plans()
         try:
             calling_plan = next(
                 item
@@ -96,7 +96,7 @@ def enable_zoom_phone(
 
     # Find phone number to assign to user
     if phone_number:
-        site_unassigned_phone_number_list = zoomapi.phone().list_phone_numbers(
+        site_unassigned_phone_number_list = zoomapi.phone.list_phone_numbers(
             type_="unassigned", number_type="toll", site_id=site_id
         )
 
@@ -127,12 +127,12 @@ def enable_zoom_phone(
     if extension_number == None:
         # Extension number is not supplied, so find the max extension value at the site to use for baseline to assign to this new user
         # This needs to be checked before enabling ZP for this user, otherwise the system will autogen an extension for this user which might affect the next extension selection
-        site_users_list = zoomapi.phone().list_users(site_id=site_id)
+        site_users_list = zoomapi.phone.list_users(site_id=site_id)
         extension_number_list = [user["extension_number"] for user in site_users_list]
         extension_number = max(extension_number_list) + 1
 
     # Enable Zoom Phone feature
-    response = zoomapi.users().update_user_settings(
+    response = zoomapi.users.update_user_settings(
         userId=userId,
         data={
             "feature": {"zoom_phone": True}
@@ -142,7 +142,7 @@ def enable_zoom_phone(
 
     # change site
     if site_id:
-        response = zoomapi.phone().update_user_profile(userId=userId, site_id=site_id)
+        response = zoomapi.phone.update_user_profile(userId=userId, site_id=site_id)
 
     # change extension
     if extension_number:
@@ -156,7 +156,7 @@ def enable_zoom_phone(
 
         while True:
             try:
-                response = zoomapi.phone().update_user_profile(
+                response = zoomapi.phone.update_user_profile(
                     userId=userId, extension_number=extension_number
                 )
                 break
@@ -180,18 +180,18 @@ def enable_zoom_phone(
 
     # assign calling plan
     if calling_plan_id:
-        assign_calling_plan_response = zoomapi.phone().assign_calling_plan_to_user(
+        assign_calling_plan_response = zoomapi.phone.assign_calling_plan_to_user(
             userId=userId, calling_plan_id=calling_plan_id
         )
 
     # assign phone number
     if phone_number != None:
-        assign_phone_number_response = zoomapi.phone().assign_number_to_user(
+        assign_phone_number_response = zoomapi.phone.assign_number_to_user(
             userId=userId, phone_number_id=phone_number["id"]
         )
 
     # Perform validation
-    user_profile_response = zoomapi.phone().get_user_profile(userId=userId)
+    user_profile_response = zoomapi.phone.get_user_profile(userId=userId)
     if user_profile_response:
         logger.info(f"Finished adding user {user_profile_response['email']}")
         logger.info(f"Extension: {user_profile_response['extension_number']}")

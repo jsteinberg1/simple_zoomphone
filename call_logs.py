@@ -37,10 +37,10 @@ def get_call_logs(
     zoomapi = ZoomAPIClient(API_KEY, API_SECRET)
 
     # Get all Zoom Users
-    user_list = zoomapi.users().list_users()
+    user_list = zoomapi.users.list_users()
 
     # Get all ZP Users
-    phone_user_list = zoomapi.phone().list_users()
+    phone_user_list = zoomapi.phone.list_users()
 
     # Set Call Log Query Parameters
     page_size = 300
@@ -79,6 +79,10 @@ def get_call_logs(
         # iterate phone users
         for this_user in phone_user_list:
 
+            if this_user["status"] == "deactivate":
+                # skip users who are deactivated, they will not appear in the user > list users.  If we need to include deactivated users, need to address how to get these users from users.list_users
+                continue
+
             # find the ZP users ZM user profile - this is used to merge data from overall ZM users into ZP call log
             this_user_zm_info = ""
             this_user_zm_info = next(
@@ -99,7 +103,7 @@ def get_call_logs(
                     continue
 
             # Get Title from user profile ( title is not provided in the list ZM users API call, so need to query each ZM user to get this. )
-            this_user_get = zoomapi.users().get_user(userId=this_user["email"])
+            this_user_get = zoomapi.users.get_user(userId=this_user["email"])
 
             if "job_title" in this_user_get:
 
@@ -119,7 +123,7 @@ def get_call_logs(
                 # get this user's call logs
                 this_user_call_logs = []
 
-                this_user_call_logs = zoomapi.phone().get_user_call_logs(
+                this_user_call_logs = zoomapi.phone.get_user_call_logs(
                     userId=this_user["email"], from_date=from_date, to_date=to_date
                 )
 

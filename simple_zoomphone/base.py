@@ -58,8 +58,6 @@ class ZoomAPIClient(object):
 
         self._session = s
 
-    def phone(self):
-        return Phone(self._session, self._server)
-
-    def users(self):
-        return Users(self._session, self._server)
+        # Define child classes
+        self.phone = Phone(self._session, self._server)
+        self.users = Users(self._session, self._server)
