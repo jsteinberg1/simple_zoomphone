@@ -12,7 +12,7 @@ logger = logging.getLogger("zp")
 logger.setLevel(logging.INFO)
 
 
-def download_call_recordings(user_2_recording: list, token: str):
+def download_call_recordings(user_2_recording: list, session: requests.session):
     """Download MP3 files from Zoom API and store files to disk.
 
     Files are stored in the 'recordings' top-level directory.  A subdirectory is created for each year, month, and user.
@@ -77,15 +77,7 @@ def download_call_recordings(user_2_recording: list, token: str):
             # Check whether we have previously downloaded and saved the MP3 file
             if not os.path.exists(os.path.join(this_directory_name, this_filename_is)):
                 # MP3 file doesn't exist on disk, download and save file
-                headers = {
-                    "authorization": "Bearer " + token,
-                    "content-type": "application/json",
-                }
-
-                recording_request_response = requests.get(
-                    this_recording["download_url"],
-                    headers=headers,
-                )
+                recording_request_response = session.get(this_recording["download_url"])
 
                 open(os.path.join(this_directory_name, this_filename_is), "wb").write(
                     recording_request_response.content
@@ -134,7 +126,9 @@ def get_call_recordings(API_KEY: str, API_SECRET: str, USER_ID: str = ""):
             logger.info(f" - Warning: {e}")
 
     # Pass to function to write to disk
-    download_call_recordings(user_2_recording=user_2_recording, token=zoomapi.jwt)
+    download_call_recordings(
+        user_2_recording=user_2_recording, session=zoomapi._session
+    )
 
 
 # Run this script using argparse

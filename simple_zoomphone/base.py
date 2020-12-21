@@ -1,7 +1,7 @@
 import requests
 from requests_oauthlib import OAuth2Session
-import datetime
-import jwt
+
+from .util import JWT_AUTH
 
 from .phone import Phone
 from .users import Users
@@ -38,18 +38,9 @@ class ZoomAPIClient(object):
             )
         elif (API_KEY != None and API_SECRET != None) and OAuth2Session == None:
             # using JWT authentication and standard requests session
-            self.jwt = jwt.encode(
-                {
-                    "iss": API_KEY,
-                    "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
-                },
-                API_SECRET,
-                algorithm="HS256",
-                headers={"alg": "HS256", "typ": "JWT"},
-            ).decode("utf-8")
 
             s = requests.Session()
-            s.headers.update({"authorization": f"Bearer {self.jwt}"})
+            s.auth = JWT_AUTH(API_KEY, API_SECRET)
             s.headers.update({"Content-type": "application/json"})
 
         elif (API_KEY == None and API_SECRET == None) and OAuth2Session != None:
